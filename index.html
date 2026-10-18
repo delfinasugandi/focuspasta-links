@@ -7,42 +7,6 @@
 </head>
 <body>
 <p>Opening the App Store…</p>
-<script>
-  // App Store Connect provider token. Until it's set, links still open the
-  // App Store but Apple can't attribute installs to a campaign.
-  const PT = "127176196";
-  const APP_ID = "6505106497";
-  const POSTHOG_KEY = "phc_z6J8ZL9UEfx8isGEo4J5mPQ2csSpHF5Fi4eReETJMtSp";
-
-  // Campaign from ?c=…, limited to what Apple's ct accepts.
-  const raw = new URLSearchParams(location.search).get("c") || "unknown";
-  const campaign = raw.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40) || "unknown";
-
-  const store = PT
-    ? `https://apps.apple.com/app/apple-store/id${APP_ID}?pt=${PT}&ct=${encodeURIComponent(campaign)}&mt=8`
-    : `https://apps.apple.com/app/id${APP_ID}`;
-
-  const go = () => location.replace(store);
-
-  fetch("https://us.i.posthog.com/capture/", {
-    method: "POST",
-    keepalive: true,
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      api_key: POSTHOG_KEY,
-      event: "qr_scanned",
-      distinct_id: crypto.randomUUID(),
-      properties: {
-        campaign,
-        $process_person_profile: false,
-        $current_url: location.href,
-        $referrer: document.referrer
-      }
-    })
-  }).finally(go);
-
-  // Never strand someone if PostHog is slow or blocked.
-  setTimeout(go, 1000);
-</script>
+<script src="/go.js" data-campaign="website" data-event="website_visited"></script>
 </body>
 </html>
