@@ -1,6 +1,7 @@
 // Logs the visit to PostHog, then forwards to the App Store campaign link.
 // Each page sets its campaign (and optionally its event name) on the script tag:
 //   <script src="/go.js" data-campaign="cceb-2026"></script>
+// Add data-code="…" to send people to redeem that offer code instead.
 (() => {
   const PT = "127176196";
   const APP_ID = "6505106497";
@@ -13,7 +14,10 @@
   const campaign = raw.toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 40) || "unknown";
   const event = tag.event || "qr_scanned";
 
-  const store = `https://apps.apple.com/app/apple-store/id${APP_ID}?pt=${PT}&ct=${encodeURIComponent(campaign)}&mt=8`;
+  const code = tag.code;
+  const store = code
+    ? `https://apps.apple.com/redeem?ctx=offercodes&id=${APP_ID}&code=${encodeURIComponent(code)}`
+    : `https://apps.apple.com/app/apple-store/id${APP_ID}?pt=${PT}&ct=${encodeURIComponent(campaign)}&mt=8`;
 
   let gone = false;
   const go = () => { if (!gone) { gone = true; location.replace(store); } };
@@ -28,6 +32,7 @@
       distinct_id: crypto.randomUUID(),
       properties: {
         campaign,
+        ...(code && { code }),
         $process_person_profile: false,
         $current_url: location.href,
         $referrer: document.referrer
